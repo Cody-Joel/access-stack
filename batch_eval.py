@@ -48,8 +48,10 @@ def collect_scenarios(category: str = "all") -> list:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Batch runner for SpecStack value-tradeoff evals.")
-    ap.add_argument("--models", nargs="+", default=["qwen3.5:9b", "ornith:9b"],
-                    help="Model specs: bare name = local Ollama; or groq/..., gemini/..., anthropic/...")
+    ap.add_argument("--models", nargs="+",
+                    default=["gpt-oss:20b-cloud", "deepseek-v3.2:cloud", "qwen3.5:cloud",
+                             "glm-5:cloud", "kimi-k2.6:cloud"],
+                    help="Model specs: bare name = local Ollama; :cloud = Ollama cloud; or groq/..., gemini/...")
     ap.add_argument("--category", default="all", help="Scenario category, or 'all'.")
     ap.add_argument("--repeats", type=int, default=3, help="Runs per scenario/condition/model.")
     ap.add_argument("--sleep", type=float, default=0.3, help="Pause between calls (seconds).")

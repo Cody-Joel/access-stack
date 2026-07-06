@@ -136,7 +136,7 @@ def call_model(model_spec: str, system_prompt: str, user_message: str) -> str:
         return _call_ollama(model_spec, system_prompt, user_message)
 
 
-def _call_ollama(model: str, system_prompt: str, user_message: str, timeout: int = 30) -> str:
+def _call_ollama(model: str, system_prompt: str, user_message: str, timeout: int = 60) -> str:
     """Call a local Ollama model and return the response text."""
     payload = {
         "model": model,
