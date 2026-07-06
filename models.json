@@ -1,0 +1,22 @@
+{
+  "local": {
+    "ollama/llama2": "Llama 2 (7B) — Fast, general-purpose",
+    "ollama/mistral": "Mistral (7B) — High quality, balanced",
+    "ollama/neural-chat": "Neural Chat (7B) — Conversation optimized"
+  },
+  "free_cloud": {
+    "groq/llama3-70b-8192": "Groq Llama 3 (70B) — Fastest free option",
+    "groq/mixtral-8x7b-32768": "Groq Mixtral (8x7B) — Larger, free tier"
+  },
+  "nvidia_nim": {
+    "nim/meta-llama3-8b-instruct": "Llama 3 8B Instruct (NIM)",
+    "nim/meta-llama3-70b-instruct": "Llama 3 70B Instruct (NIM)",
+    "nim/mistral-7b-instruct": "Mistral 7B Instruct (NIM)",
+    "nim/mixtral-8x7b": "Mixtral 8x7B (NIM)"
+  },
+  "paid": {
+    "anthropic/claude-opus": "Claude Opus — Best quality",
+    "anthropic/claude-3-5-sonnet-20241022": "Claude Sonnet 3.5 — Latest, good balance",
+    "gemini/gemini-2.0-flash": "Gemini 2.0 Flash — Fast, free tier available"
+  }
+}

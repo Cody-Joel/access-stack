@@ -1,0 +1,18 @@
+[
+  {
+    "scenario_id": "hvh_001",
+    "model_a": "groq/mixtral-8x7b-32768",
+    "model_b": "anthropic/claude-opus",
+    "response_a": "\u274c Groq error: HTTP Error 403: Forbidden",
+    "response_b": "\u274c Anthropic error: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cbzo9EA4E4QQaR8KZo4rr'}",
+    "divergence_overlap": 0.16666666666666666
+  },
+  {
+    "scenario_id": "hvh_002",
+    "model_a": "groq/mixtral-8x7b-32768",
+    "model_b": "anthropic/claude-opus",
+    "response_a": "\u274c Groq error: HTTP Error 403: Forbidden",
+    "response_b": "\u274c Anthropic error: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Cbzo9J4TQubRoJZttKefb'}",
+    "divergence_overlap": 0.16666666666666666
+  }
+]

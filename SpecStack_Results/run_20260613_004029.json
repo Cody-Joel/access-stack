@@ -1,0 +1,18 @@
+[
+  {
+    "scenario_id": "hvh_001",
+    "model_a": "ollama/mistral",
+    "model_b": "ollama/llama2",
+    "response_a": "\u274c Ollama error: HTTP Error 404: Not Found",
+    "response_b": "\u274c Ollama error: HTTP Error 404: Not Found",
+    "divergence_overlap": 1.0
+  },
+  {
+    "scenario_id": "hvh_002",
+    "model_a": "ollama/mistral",
+    "model_b": "ollama/llama2",
+    "response_a": "\u274c Ollama error: HTTP Error 404: Not Found",
+    "response_b": "\u274c Ollama error: HTTP Error 404: Not Found",
+    "divergence_overlap": 1.0
+  }
+]

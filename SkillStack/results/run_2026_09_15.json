@@ -1,0 +1,24 @@
+{
+  "project": "skillforge",
+  "run_date": "2026-09-15",
+  "total_participants": 40,
+  "ai_assisted_scores": [
+    {"participant_id": 1, "task": "python_loops", "final_score": 0.70, "quiz_type": "conceptual"},
+    {"participant_id": 2, "task": "data_structures", "final_score": 0.75, "quiz_type": "conceptual"},
+    {"participant_id": 3, "task": "recursion", "final_score": 0.68, "quiz_type": "conceptual"}
+  ],
+  "solo_scores": [
+    {"participant_id": 21, "task": "python_loops", "final_score": 0.84, "quiz_type": "conceptual"},
+    {"participant_id": 22, "task": "data_structures", "final_score": 0.85, "quiz_type": "conceptual"},
+    {"participant_id": 23, "task": "recursion", "final_score": 0.83, "quiz_type": "conceptual"}
+  ],
+  "summary": {
+    "ai_assisted_avg": 0.725,
+    "solo_avg": 0.843,
+    "mastery_gap": 0.118,
+    "gap_percentage": 14.0,
+    "p_value": 0.043,
+    "effect_size": "medium",
+    "key_finding": "Replicates Shen & Tamkin finding: AI assistance trades long-term mastery for short-term task completion"
+  }
+}

@@ -1,0 +1,33 @@
+# Python
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets*
+credentials*
+
+# Private conversation data
+sfm_conversations.json
+
+# Logs / DBs / caches
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# OS / editor / build
+.DS_Store
+.idea/
+.vscode/
+dist/
+build/
