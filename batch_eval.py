@@ -22,6 +22,7 @@ import argparse
 import json
 import time
 import datetime
+import urllib.request
 from pathlib import Path
 
 from SpecStack.runner import (
@@ -46,6 +47,24 @@ def collect_scenarios(category: str = "all") -> list:
     return [{**s, "category": category} for s in SCENARIO_CATEGORIES.get(category, [])]
 
 
+REMOTE_PREFIXES = ("groq/", "gemini/", "openrouter/", "anthropic/", "claude")
+
+
+def is_remote(model: str) -> bool:
+    """These models come from an external API, not Ollama, so don't validate them against Ollama."""
+    return model.startswith(REMOTE_PREFIXES)
+
+
+def available_models() -> set:
+    """Model names Ollama currently serves (local + cloud). Empty set if Ollama is unreachable."""
+    try:
+        with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=10) as resp:
+            data = json.loads(resp.read())
+        return {m.get("name", "") for m in data.get("models", [])}
+    except Exception:
+        return set()
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Batch runner for SpecStack value-tradeoff evals.")
     ap.add_argument("--models", nargs="+",
@@ -56,7 +75,30 @@ def main() -> None:
     ap.add_argument("--repeats", type=int, default=3, help="Runs per scenario/condition/model.")
     ap.add_argument("--sleep", type=float, default=0.3, help="Pause between calls (seconds).")
     ap.add_argument("--out", default=None, help="Output JSONL path (default: SpecStack/results/batch_<ts>.jsonl).")
+    ap.add_argument("--list-models", action="store_true", help="List models Ollama has, then exit.")
     args = ap.parse_args()
+
+    if args.list_models:
+        avail = available_models()
+        if not avail:
+            print("Couldn't reach Ollama at localhost:11434 — is it running?")
+        else:
+            print("Available Ollama models:")
+            for m in sorted(avail):
+                print("  " + m)
+        return
+
+    # Skip any requested model Ollama doesn't actually have, so one typo doesn't waste a whole run.
+    avail = available_models()
+    if avail:
+        missing = [m for m in args.models if not is_remote(m) and m not in avail]
+        if missing:
+            print(f"WARNING: not in Ollama, skipping: {missing}")
+            print("  (run  python batch_eval.py --list-models  to see exact names)")
+            args.models = [m for m in args.models if is_remote(m) or m in avail]
+        if not args.models:
+            print("No usable models left. Use --list-models to see what you have.")
+            return
 
     scenarios = collect_scenarios(args.category)
     if not scenarios:
