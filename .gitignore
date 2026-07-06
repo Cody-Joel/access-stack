@@ -31,3 +31,6 @@ sfm_conversations.json
 .vscode/
 dist/
 build/
+
+# Personal application materials — keep private, do not publish
+/application/
