@@ -48,7 +48,7 @@ def collect_scenarios(category: str = "all") -> list:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Batch runner for SpecStack value-tradeoff evals.")
-    ap.add_argument("--models", nargs="+", default=["llama2", "mistral", "neural-chat"],
+    ap.add_argument("--models", nargs="+", default=["qwen3.5:9b", "ornith:9b"],
                     help="Model specs: bare name = local Ollama; or groq/..., gemini/..., anthropic/...")
     ap.add_argument("--category", default="all", help="Scenario category, or 'all'.")
     ap.add_argument("--repeats", type=int, default=3, help="Runs per scenario/condition/model.")
