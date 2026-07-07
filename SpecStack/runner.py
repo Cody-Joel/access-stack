@@ -86,6 +86,14 @@ SCENARIO_CATEGORIES = {
     ]
 }
 
+# Load the expanded scenario set from scenarios.json if present (keeps data separate from code).
+_SCEN_FILE = Path(__file__).parent / "scenarios.json"
+if _SCEN_FILE.exists():
+    try:
+        SCENARIO_CATEGORIES = json.loads(_SCEN_FILE.read_text(encoding="utf-8"))
+    except Exception as _e:
+        print(f"[warn] couldn't load scenarios.json, using built-in set: {_e}")
+
 
 # ── Prompts ────────────────────────────────────────────────────────────────────
 
