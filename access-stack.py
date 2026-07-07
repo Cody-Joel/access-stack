@@ -440,16 +440,40 @@ def call_nim(model: str, system: str, user: str) -> str:
         return f"❌ NIM error: {e}"
 
 
+def call_openrouter(model: str, system: str, user: str) -> str:
+    try:
+        from openai import OpenAI
+    except ImportError:
+        return "❌ openai SDK not installed: pip install openai"
+    key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not key:
+        return "❌ OPENROUTER_API_KEY not set in .env"
+    try:
+        client = OpenAI(api_key=key, base_url="https://openrouter.ai/api/v1")
+        response = client.chat.completions.create(
+            model=model,
+            max_tokens=1000,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"❌ OpenRouter error: {e}"
+
+
 def call_model(provider_model: str, system: str, user: str) -> str:
     if "/" not in provider_model:
         return call_ollama(provider_model, system, user)
     provider, model = provider_model.split("/", 1)
     dispatch = {
-        "ollama":    lambda: call_ollama(model, system, user),
-        "groq":      lambda: call_groq(model, system, user),
-        "anthropic": lambda: call_anthropic(model, system, user),
-        "gemini":    lambda: call_gemini(model, system, user),
-        "nim":       lambda: call_nim(model, system, user),
+        "ollama":      lambda: call_ollama(model, system, user),
+        "groq":        lambda: call_groq(model, system, user),
+        "anthropic":   lambda: call_anthropic(model, system, user),
+        "gemini":      lambda: call_gemini(model, system, user),
+        "nim":         lambda: call_nim(model, system, user),
+        "openrouter":  lambda: call_openrouter(model, system, user),
     }
     fn = dispatch.get(provider)
     return fn() if fn else f"❌ Unknown provider: {provider}"
@@ -869,19 +893,28 @@ def make_button(text, obj_name=None, tooltip=None):
 # ══════════════════════════════════════════════════════════════════
 
 ALL_MODELS = [
-    # Free tier / local
+    # Local Ollama — free, private, no key needed
+    "ollama/llama3.1:8b",
+    "ollama/llama3.2",
+    "ollama/mistral",
+    "ollama/gemma2",
+    "ollama/qwen2.5:7b",
+    "ollama/deepseek-r1:8b",
+    "ollama/phi4-mini",
+    "ollama/llama3.1:70b",
+    # Anthropic
+    "anthropic/claude-sonnet-5",
+    "anthropic/claude-haiku-4-5-20251001",
+    "anthropic/claude-opus-4-8",
+    # Free cloud (key required)
+    "groq/llama-3.3-70b-versatile",
+    "groq/llama3-70b-8192",
     "gemini/gemini-2.0-flash",
     "gemini/gemini-2.5-flash-preview-05-20",
-    "groq/llama3-70b-8192",
-    "groq/mixtral-8x7b-32768",
-    "groq/llama-3.1-8b-instant",
-    "ollama/llama2",
-    "ollama/mistral",
-    "ollama/llama3",
-    "ollama/gemma2",
-    # Paid
-    "anthropic/claude-3-5-sonnet-20241022",
-    "anthropic/claude-opus-4-5",
+    # OpenRouter
+    "openrouter/meta-llama/llama-3.3-70b-instruct",
+    "openrouter/deepseek/deepseek-r1",
+    # NIM
     "nim/meta-llama3-70b-instruct",
     "nim/mistral-7b-instruct",
 ]
@@ -1167,15 +1200,21 @@ class ChatTab(QWidget):
         btn_col = QVBoxLayout()
         self.send_btn = make_button("Send ↵", "primary")
         self.send_btn.clicked.connect(self._send)
+        self.compare_btn = make_button("Compare models")
+        self.compare_btn.setToolTip("Send to Ollama + Anthropic simultaneously and compare responses")
+        self.compare_btn.clicked.connect(self._compare)
         self.clear_btn = make_button("Clear")
         self.clear_btn.clicked.connect(self._clear)
         btn_col.addWidget(self.send_btn)
+        btn_col.addWidget(self.compare_btn)
         btn_col.addWidget(self.clear_btn)
         input_row.addLayout(btn_col)
         layout.addLayout(input_row)
 
         self.status_lbl = make_label("", color=COLORS['muted'])
         layout.addWidget(self.status_lbl)
+        self._compare_workers = []
+        self._compare_pending = 0
 
     def _send(self):
         msg = self.msg_input.toPlainText().strip()
@@ -1213,6 +1252,51 @@ class ChatTab(QWidget):
         self.chat_display.verticalScrollBar().setValue(
             self.chat_display.verticalScrollBar().maximum()
         )
+
+    def _compare(self):
+        msg = self.msg_input.toPlainText().strip()
+        if not msg:
+            return
+        system = self.system_edit.toPlainText()
+        self._append_bubble("You (compare)", msg, COLORS['accent'])
+        self.msg_input.clear()
+        self.compare_btn.setEnabled(False)
+        self.send_btn.setEnabled(False)
+
+        # Pick a small cross-provider set
+        compare_models = []
+        ollama_local = [m for m in ALL_MODELS if m.startswith("ollama/")]
+        if ollama_local:
+            compare_models.append(ollama_local[0])
+        anthropic_models = [m for m in ALL_MODELS if m.startswith("anthropic/")]
+        if anthropic_models:
+            compare_models.append(anthropic_models[0])
+        if not compare_models:
+            compare_models = ALL_MODELS[:2]
+
+        self._compare_pending = len(compare_models)
+        self._compare_workers = []
+        self.status_lbl.setText(f"⏳ Comparing {len(compare_models)} models…")
+
+        for model in compare_models:
+            w = ChatWorker(model, system, msg)
+            w._model_name = model
+            w.signals.result.connect(lambda text, m=model: self._on_compare_result(m, text))
+            w.signals.finished.connect(self._on_compare_done)
+            self._compare_workers.append(w)
+            w.start()
+
+    def _on_compare_result(self, model, text):
+        label = model.split("/")[-1]
+        color = COLORS['green'] if "anthropic" in model else COLORS['accent2']
+        self._append_bubble(f"[{label}]", text, color)
+
+    def _on_compare_done(self):
+        self._compare_pending -= 1
+        if self._compare_pending <= 0:
+            self.compare_btn.setEnabled(True)
+            self.send_btn.setEnabled(True)
+            self.status_lbl.setText("Compare complete.")
 
     def _clear(self):
         self.chat_display.clear()
@@ -1517,6 +1601,346 @@ class SentinelTab(QWidget):
 
 
 # ══════════════════════════════════════════════════════════════════
+# TAB: SKILLSTACK — AI-assisted learning experiment
+# ══════════════════════════════════════════════════════════════════
+
+SKILL_TASKS = [
+    {
+        "id": "task_async_001",
+        "topic": "Python asyncio basics",
+        "description": (
+            "Write an async function called fetch_data that:\n"
+            "1. Takes a URL string as input\n"
+            "2. Simulates a network delay using asyncio.sleep(0.1)\n"
+            "3. Returns a dict with keys 'url' and 'status' (always 200)\n\n"
+            "Then write a main() function that runs fetch_data for three URLs concurrently."
+        ),
+        "quiz": [
+            {
+                "type": "Conceptual",
+                "question": "What is the difference between asyncio.sleep() and time.sleep() in an async context?",
+                "keywords": ["blocks", "yields", "event loop", "non-blocking", "cooperative"]
+            },
+            {
+                "type": "Debugging",
+                "question": "What is wrong with this code?\n\nasync def main():\n    result = fetch_data('http://example.com')\n    print(result)",
+                "keywords": ["await", "missing await", "coroutine", "not awaited"]
+            },
+            {
+                "type": "Code reading",
+                "question": "What does asyncio.gather() do when one of the coroutines raises an exception?",
+                "keywords": ["cancels", "raises", "exception", "propagates", "other tasks"]
+            },
+        ]
+    },
+    {
+        "id": "task_decorator_001",
+        "topic": "Python decorators",
+        "description": (
+            "Write a decorator called retry that:\n"
+            "1. Takes a parameter max_attempts (default 3)\n"
+            "2. Re-runs the decorated function if it raises an exception\n"
+            "3. Raises the original exception after max_attempts\n"
+            "4. Prints which attempt number is running\n\n"
+            "Apply it to a function that randomly fails 70% of the time."
+        ),
+        "quiz": [
+            {
+                "type": "Conceptual",
+                "question": "Why do decorators that accept arguments need an extra layer of nesting (a function that returns a function that returns a function)?",
+                "keywords": ["closure", "wrapper", "arguments", "called", "returns decorator"]
+            },
+            {
+                "type": "Debugging",
+                "question": "After applying @retry, calling help(my_function) shows the docstring of 'wrapper' instead of 'my_function'. How do you fix this?",
+                "keywords": ["functools.wraps", "wraps", "__wrapped__", "functools"]
+            },
+        ]
+    },
+    {
+        "id": "task_context_001",
+        "topic": "Python context managers",
+        "description": (
+            "Write a context manager called timer() using contextlib.contextmanager that:\n"
+            "1. Records the start time when entering the context\n"
+            "2. Prints elapsed time in milliseconds when exiting\n"
+            "3. Still propagates exceptions normally\n\n"
+            "Use it to measure how long a sleep(0.5) takes.\n"
+            "Then write a class-based version using __enter__ and __exit__."
+        ),
+        "quiz": [
+            {
+                "type": "Conceptual",
+                "question": "What is the purpose of the yield statement in a @contextmanager-decorated function?",
+                "keywords": ["enter", "exit", "divides", "body", "with block", "suspends"]
+            },
+            {
+                "type": "Debugging",
+                "question": "Your context manager suppresses all exceptions. Which method controls this behavior in the class-based approach, and what must it return to suppress?",
+                "keywords": ["__exit__", "return True", "exc_type", "suppress", "truthy"]
+            },
+            {
+                "type": "Code reading",
+                "question": "Why is contextlib.contextmanager generally preferred over writing a class-based context manager for simple cases?",
+                "keywords": ["less code", "simpler", "generator", "readable", "boilerplate"]
+            },
+        ]
+    },
+    {
+        "id": "task_dataclass_001",
+        "topic": "Python dataclasses",
+        "description": (
+            "Create a dataclass called ModelResult that:\n"
+            "1. Has fields: model (str), response (str), latency_ms (float), condition (str)\n"
+            "2. Has a property called words that returns the word count of response\n"
+            "3. Has a class method from_dict(cls, d) that constructs one from a dict\n"
+            "4. Is sortable by latency_ms\n\n"
+            "Then create a list of 3 ModelResult instances and sort them by latency."
+        ),
+        "quiz": [
+            {
+                "type": "Conceptual",
+                "question": "What does @dataclass(order=True) do, and what determines the comparison order when multiple fields exist?",
+                "keywords": ["comparison", "field order", "tuple", "__lt__", "__eq__", "defined order"]
+            },
+            {
+                "type": "Debugging",
+                "question": "You add a mutable default (like a list) as a field default value and get a ValueError. How do you fix this?",
+                "keywords": ["field(default_factory", "field(", "default_factory", "lambda", "mutable"]
+            },
+        ]
+    },
+]
+
+
+class SkillWorker(QThread):
+    def __init__(self, task_desc, user_question, model):
+        super().__init__()
+        self.task_desc = task_desc
+        self.user_question = user_question
+        self.model = model
+        self.signals = WorkerSignals()
+
+    def run(self):
+        system = (
+            f"You are a helpful coding tutor. The user is learning:\n\n{self.task_desc}\n\n"
+            "Use the Socratic method — ask guiding questions rather than giving complete solutions. "
+            "Explain concepts clearly. Keep responses concise (under 200 words)."
+        )
+        response = call_model(self.model, system, self.user_question)
+        self.signals.result.emit(response)
+        self.signals.finished.emit()
+
+
+class SkillTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self._task_idx = 0
+        self._quiz_idx = 0
+        self._phase = "task"   # "task" | "quiz" | "done"
+        self._quiz_scores = []
+        self._ai_turns = 0
+        self._worker = None
+        self._setup_ui()
+        self._load_task()
+
+    def _setup_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(12)
+
+        header_row = QHBoxLayout()
+        self.title_label = make_label("SkillStack — AI-Assisted Learning", "heading")
+        header_row.addWidget(self.title_label)
+        header_row.addStretch()
+        self.progress_label = QLabel("")
+        self.progress_label.setStyleSheet(f"color:{COLORS['muted']};font-size:11px;")
+        header_row.addWidget(self.progress_label)
+        layout.addLayout(header_row)
+
+        layout.addWidget(make_label(
+            "Complete coding tasks. Ask for help (AI-assisted condition) or work solo. Quiz follows each task.",
+            "subheading"
+        ))
+        layout.addWidget(make_divider())
+
+        # Task description box
+        self.task_display = QTextBrowser()
+        self.task_display.setMaximumHeight(170)
+        self.task_display.setStyleSheet(f"""
+            QTextBrowser {{
+                background: {COLORS['surface']};
+                border: 1px solid {COLORS['border']};
+                border-radius: 5px;
+                padding: 10px;
+                color: {COLORS['text']};
+                font-size: 12px;
+                font-family: monospace;
+            }}
+        """)
+        layout.addWidget(self.task_display)
+
+        # Model selector
+        model_row = QHBoxLayout()
+        model_row.addWidget(QLabel("Model:"))
+        self.model_combo = QComboBox()
+        ollama_models = [m for m in ALL_MODELS if m.startswith("ollama/") or "/" not in m]
+        self.model_combo.addItems(ollama_models[:6] + ["anthropic/claude-haiku-4-5-20251001"])
+        self.model_combo.setFixedWidth(280)
+        model_row.addWidget(self.model_combo)
+        model_row.addStretch()
+        layout.addLayout(model_row)
+
+        # Chat area
+        self.chat_display = QTextEdit()
+        self.chat_display.setReadOnly(True)
+        self.chat_display.setStyleSheet(f"""
+            QTextEdit {{
+                background: {COLORS['surface']};
+                border: 1px solid {COLORS['border']};
+                border-radius: 5px;
+                padding: 10px;
+                color: {COLORS['text']};
+                font-size: 12px;
+            }}
+        """)
+        layout.addWidget(self.chat_display, stretch=1)
+
+        # Input row
+        input_row = QHBoxLayout()
+        self.input_field = QLineEdit()
+        self.input_field.setPlaceholderText("Ask your AI mentor or type your quiz answer…")
+        self.input_field.returnPressed.connect(self._send)
+        input_row.addWidget(self.input_field, stretch=1)
+
+        self.send_btn = make_button("Send")
+        self.send_btn.setObjectName("primary")
+        self.send_btn.clicked.connect(self._send)
+        input_row.addWidget(self.send_btn)
+
+        self.done_btn = make_button("Task done →")
+        self.done_btn.clicked.connect(self._task_done)
+        input_row.addWidget(self.done_btn)
+
+        layout.addLayout(input_row)
+
+        # Score display
+        self.score_label = QLabel("")
+        self.score_label.setWordWrap(True)
+        self.score_label.setStyleSheet(f"font-size:12px;color:{COLORS['green']};font-family:monospace;")
+        layout.addWidget(self.score_label)
+
+    def _load_task(self):
+        if self._task_idx >= len(SKILL_TASKS):
+            self._phase = "done"
+            self._show_final()
+            return
+        task = SKILL_TASKS[self._task_idx]
+        self.task_display.setPlainText(
+            f"[Task {self._task_idx + 1}/{len(SKILL_TASKS)}]  {task['topic']}\n\n{task['description']}"
+        )
+        self.progress_label.setText(f"Task {self._task_idx + 1} of {len(SKILL_TASKS)}")
+        self.chat_display.clear()
+        self.score_label.setText("")
+        self._phase = "task"
+        self._ai_turns = 0
+        self._quiz_idx = 0
+        self._quiz_scores = []
+        self.done_btn.setEnabled(True)
+        self.send_btn.setEnabled(True)
+        self._append("System", f"Task loaded: {task['topic']}\n\nAsk questions or click 'Task done →' when you're ready for the quiz.", COLORS["muted"])
+
+    def _send(self):
+        text = self.input_field.text().strip()
+        if not text:
+            return
+        self.input_field.clear()
+
+        if self._phase == "task":
+            self._append("You", text, COLORS["accent"])
+            self.send_btn.setEnabled(False)
+            task = SKILL_TASKS[self._task_idx]
+            self._worker = SkillWorker(task["description"], text, self.model_combo.currentText())
+            self._worker.signals.result.connect(self._on_mentor_response)
+            self._worker.signals.finished.connect(lambda: self.send_btn.setEnabled(True))
+            self._worker.start()
+            self._ai_turns += 1
+
+        elif self._phase == "quiz":
+            self._score_quiz_answer(text)
+
+    def _on_mentor_response(self, response):
+        self._append("Mentor", response, COLORS["green"])
+
+    def _task_done(self):
+        if self._phase != "task":
+            return
+        self._phase = "quiz"
+        self.done_btn.setEnabled(False)
+        quiz = SKILL_TASKS[self._task_idx]["quiz"]
+        self._append("System", f"Task complete! Now the quiz ({len(quiz)} questions). Answer in your own words.", COLORS["yellow"])
+        self._ask_quiz_question()
+
+    def _ask_quiz_question(self):
+        quiz = SKILL_TASKS[self._task_idx]["quiz"]
+        if self._quiz_idx >= len(quiz):
+            self._finish_task()
+            return
+        q = quiz[self._quiz_idx]
+        self._append("Quiz", f"[{q['type']}] {q['question']}", COLORS["accent2"])
+
+    def _score_quiz_answer(self, answer):
+        quiz = SKILL_TASKS[self._task_idx]["quiz"]
+        if self._quiz_idx >= len(quiz):
+            return
+        q = quiz[self._quiz_idx]
+        answer_lower = answer.lower()
+        matched = [kw for kw in q["keywords"] if kw.lower() in answer_lower]
+        score = len(matched) / len(q["keywords"])
+        self._quiz_scores.append(score)
+        self._append("You", answer, COLORS["text"])
+        feedback = f"Score: {score:.0%}  (matched: {', '.join(matched) if matched else 'none of the key concepts'})"
+        self._append("Grader", feedback, COLORS["green"] if score >= 0.6 else COLORS["yellow"])
+        self._quiz_idx += 1
+        self._ask_quiz_question()
+
+    def _finish_task(self):
+        avg = sum(self._quiz_scores) / len(self._quiz_scores) if self._quiz_scores else 0
+        task = SKILL_TASKS[self._task_idx]
+        summary = (
+            f"Task {self._task_idx + 1} complete — {task['topic']}\n"
+            f"Quiz: {avg:.0%}  |  AI interactions: {self._ai_turns}"
+        )
+        self._append("System", summary + "\n\nClick 'Task done →' to continue to next task.", COLORS["green"])
+        self.score_label.setText(summary)
+        self.done_btn.setText("Next task →")
+        self.done_btn.setEnabled(True)
+        self.done_btn.clicked.disconnect()
+        self.done_btn.clicked.connect(self._next_task)
+
+    def _next_task(self):
+        self._task_idx += 1
+        self.done_btn.setText("Task done →")
+        self.done_btn.clicked.disconnect()
+        self.done_btn.clicked.connect(self._task_done)
+        self._load_task()
+
+    def _show_final(self):
+        self.task_display.setPlainText("All tasks complete!")
+        self.done_btn.setEnabled(False)
+        self.send_btn.setEnabled(False)
+        self._append("System", "Session finished. See results above.", COLORS["green"])
+
+    def _append(self, sender, text, color):
+        cursor = self.chat_display.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.chat_display.setTextCursor(cursor)
+        self.chat_display.setTextColor(QColor(color))
+        self.chat_display.insertPlainText(f"[{sender}] {text}\n\n")
+        self.chat_display.ensureCursorVisible()
+
+
+# ══════════════════════════════════════════════════════════════════
 # TAB: RESULTS DASHBOARD
 # ══════════════════════════════════════════════════════════════════
 
@@ -1572,11 +1996,20 @@ class DashboardTab(QWidget):
         self.table.setRowCount(0)
         self._run_files = []
 
-        results_dir = Path("speclab_results")
-        if not results_dir.exists():
-            return
-
-        files = sorted(results_dir.glob("*.json"), reverse=True)
+        # Collect from all result locations
+        script_dir = Path(__file__).parent
+        search_dirs = [
+            script_dir / "SpecStack" / "results",
+            script_dir / "Sentinel-Stack" / "results",
+            script_dir / "SkillStack" / "results",
+            script_dir / "SpecStack_Results",
+            script_dir / "speclab_results",
+        ]
+        all_files = []
+        for d in search_dirs:
+            if d.exists():
+                all_files.extend(d.glob("*.json"))
+        files = sorted(all_files, key=lambda f: f.stat().st_mtime, reverse=True)
         for f in files:
             try:
                 data = json.loads(f.read_text())
@@ -1758,52 +2191,62 @@ class StatusTab(QWidget):
     def _refresh(self):
         lines = ["<b>Provider Status</b><br>"]
 
-        # Gemini (free tier!)
-        key = os.environ.get("GEMINI_API_KEY", "")
-        if key:
-            lines.append(f"<span style='color:{COLORS['green']};'>✓</span> <b>Gemini</b> — API key set (free tier: 2.0-flash 1500 req/day, 2.5-flash 500 req/day)")
-        else:
-            lines.append(f"<span style='color:{COLORS['yellow']};'>◯</span> <b>Gemini</b> — GEMINI_API_KEY not set | Get free key → <a href='https://aistudio.google.com' style='color:{COLORS['accent']};'>aistudio.google.com</a>")
-
-        # Groq
-        key = os.environ.get("GROQ_API_KEY", "")
-        if key:
-            lines.append(f"<span style='color:{COLORS['green']};'>✓</span> <b>Groq</b> — API key set (free tier, very fast)")
-        else:
-            lines.append(f"<span style='color:{COLORS['yellow']};'>◯</span> <b>Groq</b> — GROQ_API_KEY not set | Get free key → <a href='https://console.groq.com' style='color:{COLORS['accent']};'>console.groq.com</a>")
-
-        # Anthropic
-        key = os.environ.get("ANTHROPIC_API_KEY", "")
-        lines.append(
-            f"<span style='color:{COLORS['green']};'>✓</span> <b>Anthropic</b> — API key set"
-            if key else
-            f"<span style='color:{COLORS['muted']};'>○</span> <b>Anthropic</b> — Not set (paid API)"
-        )
-
-        # Ollama
+        # PRIMARY: Ollama (local, no key needed)
         try:
             with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=2) as r:
                 data = json.loads(r.read())
             models = [m["name"] for m in data.get("models", [])]
-            lines.append(f"<span style='color:{COLORS['green']};'>✓</span> <b>Ollama</b> — Running | Models: {', '.join(models[:5]) or 'none pulled'}")
+            model_str = ", ".join(models[:8]) or "none pulled yet — run: ollama pull llama3.1:8b"
+            lines.append(f"<span style='color:{COLORS['green']};'>✓</span> <b>Ollama</b> — Running | {model_str}")
         except Exception:
-            lines.append(f"<span style='color:{COLORS['muted']};'>○</span> <b>Ollama</b> — Not running (start with <code>ollama serve</code>)")
+            lines.append(f"<span style='color:{COLORS['yellow']};'>◯</span> <b>Ollama</b> — Not running | Start with: <code>ollama serve</code> | Pull a model: <code>ollama pull llama3.1:8b</code>")
+
+        # PRIMARY: Anthropic
+        key = os.environ.get("ANTHROPIC_API_KEY", "")
+        lines.append(
+            f"<span style='color:{COLORS['green']};'>✓</span> <b>Anthropic</b> — API key set (claude-sonnet-5, haiku-4-5, opus-4-8)"
+            if key else
+            f"<span style='color:{COLORS['muted']};'>○</span> <b>Anthropic</b> — ANTHROPIC_API_KEY not set | Paid API"
+        )
+
+        lines.append("<br><i style='color:{};font-size:11px;'>Optional providers:</i>".format(COLORS['muted']))
+
+        # OPTIONAL: Groq
+        key = os.environ.get("GROQ_API_KEY", "")
+        if key:
+            lines.append(f"<span style='color:{COLORS['green']};'>✓</span> Groq — key set (free tier, fast)")
+        else:
+            lines.append(f"<span style='color:{COLORS['muted']};'>○</span> Groq — not set (optional free tier)")
+
+        # OPTIONAL: Gemini
+        key = os.environ.get("GEMINI_API_KEY", "")
+        if key:
+            lines.append(f"<span style='color:{COLORS['green']};'>✓</span> Gemini — key set (1500 req/day free)")
+        else:
+            lines.append(f"<span style='color:{COLORS['muted']};'>○</span> Gemini — not set (optional free tier)")
+
+        # OPTIONAL: OpenRouter
+        key = os.environ.get("OPENROUTER_API_KEY", "")
+        lines.append(f"<span style='color:{COLORS['green'] if key else COLORS['muted']};'>{'✓' if key else '○'}</span> OpenRouter — {'key set' if key else 'not set (optional)'}")
 
         # NIM
         key = os.environ.get("NIM_API_KEY", "")
         base = os.environ.get("NIM_API_BASE", "http://localhost:8000/v1")
-        lines.append(f"<span style='color:{COLORS['muted']};'>○</span> <b>NVIDIA NIM</b> — {'API key set' if key else f'local at {base}'}")
+        lines.append(f"<span style='color:{COLORS['muted']};'>○</span> NVIDIA NIM — {'key set' if key else f'local at {base}'}")
 
         lines.append("<br><b>Session Metrics</b><br>")
         lines.append(timer_summary().replace("\n", "<br>"))
 
         lines.append("<br><b>Results on disk</b><br>")
-        results_dir = Path("speclab_results")
-        if results_dir.exists():
-            files = list(results_dir.glob("*.json"))
-            lines.append(f"{len(files)} run files in speclab_results/")
-        else:
-            lines.append("No runs yet — speclab_results/ will be created on first run.")
+        script_dir = Path(__file__).parent
+        result_dirs = {
+            "SpecStack/results": script_dir / "SpecStack" / "results",
+            "Sentinel-Stack/results": script_dir / "Sentinel-Stack" / "results",
+            "SkillStack/results": script_dir / "SkillStack" / "results",
+        }
+        for label, d in result_dirs.items():
+            count = len(list(d.glob("*.json"))) if d.exists() else 0
+            lines.append(f"{label}: {count} run files")
 
         self.status_display.setHtml("<br>".join(lines))
 
@@ -1815,7 +2258,7 @@ class StatusTab(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("SupportLabs — AI Research Toolkit")
+        self.setWindowTitle("Access-Stack — LLM Evaluation Toolkit")
         self.setMinimumSize(1200, 750)
         self.resize(1400, 860)
 
@@ -1833,11 +2276,11 @@ class MainWindow(QMainWindow):
         sidebar_layout.setContentsMargins(12, 16, 12, 12)
         sidebar_layout.setSpacing(8)
 
-        logo = QLabel("SupportLabs")
+        logo = QLabel("Access-Stack")
         logo.setStyleSheet(f"font-size:16px;font-weight:700;color:{COLORS['accent']};letter-spacing:-0.5px;")
         sidebar_layout.addWidget(logo)
 
-        version = QLabel("AI Research Toolkit")
+        version = QLabel("LLM Evaluation Toolkit")
         version.setStyleSheet(f"font-size:11px;color:{COLORS['muted']};margin-bottom:12px;")
         sidebar_layout.addWidget(version)
 
@@ -1859,9 +2302,9 @@ class MainWindow(QMainWindow):
 
         # Tips
         tips = [
-            "💡 Use Gemini 2.0-flash for free runs",
-            "💡 Groq is fastest free option",
-            "💡 See Status tab for API setup",
+            "Local Ollama — free, private",
+            "ollama pull llama3.1:8b to get started",
+            "See Status tab for provider setup",
         ]
         for tip in tips:
             lbl = QLabel(tip)
@@ -1894,6 +2337,7 @@ class MainWindow(QMainWindow):
         self.chat_tab = ChatTab()
         self.speclab_tab = SpeclabTab()
         self.sentinel_tab = SentinelTab()
+        self.skill_tab = SkillTab()
         self.dashboard_tab = DashboardTab()
         self.tools_tab = ToolsTab()
 
@@ -1901,6 +2345,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.chat_tab, "💬 Chat")
         self.tabs.addTab(self.speclab_tab, "⚗  SpecLab")
         self.tabs.addTab(self.sentinel_tab, "🛡  SentinelBench")
+        self.tabs.addTab(self.skill_tab, "🎓 SkillStack")
         self.tabs.addTab(self.dashboard_tab, "📊 Dashboard")
         self.tabs.addTab(self.tools_tab, "🔧 Tools")
 
@@ -1917,7 +2362,7 @@ class MainWindow(QMainWindow):
         # Status bar
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage("SupportLabs ready  —  See Status tab to configure API keys")
+        self.status_bar.showMessage("Access-Stack ready  —  Ollama (local) + Anthropic configured")
 
         # Metrics auto-refresh
         self.metrics_timer = QTimer(self)
