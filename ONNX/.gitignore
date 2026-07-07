@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+*.dll
+*.exe
+*.pdb
+.env
+*.log
+results/*
+!results/.gitkeep

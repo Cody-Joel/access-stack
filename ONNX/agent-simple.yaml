@@ -1,0 +1,20 @@
+agents:
+  root:
+    model: ollama/mistral
+    description: ONNX Inference & Benchmarking Agent
+    instruction: |
+      You are an expert ONNX model specialist. Help with:
+      1. Getting model info: Run `cd C:\AS\ONNX && dotnet run -- info -m models/model.onnx`
+      2. Benchmarking: Run `cd C:\AS\ONNX && dotnet run -- benchmark -m models/model.onnx -i 100 -w 10`
+      3. Project structure: Check `dir C:\AS\ONNX`
+      
+      Always explain what you're doing and provide clear output.
+    toolsets:
+      - type: filesystem
+      - type: shell
+      - type: think
+
+providers:
+  ollama:
+    base_url: http://localhost:11434
+    model: mistral

@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  onnx-inference:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onnx-inference
+    volumes:
+      - ./models:/app/models
+      - ./results:/app/results
+    environment:
+      - ONNX_LOG_LEVEL=WARNING
+    command: benchmark -m /app/models/model.onnx -i 100
+
+  # Python fine-tuning service (optional)
+  onnx-finetuner:
+    build:
+      context: ./finetuner
+      dockerfile: Dockerfile.python
+    container_name: onnx-finetuner
+    volumes:
+      - ./models:/app/models
+      - ./datasets:/app/datasets
+      - ./finetuner:/app/finetuner
+    environment:
+      - PYTHONUNBUFFERED=1
+    profiles:
+      - finetuning

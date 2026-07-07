@@ -32,6 +32,7 @@ sfm_conversations.json
 .DS_Store
 .idea/
 .vscode/
+.vs/
 dist/
 build/
 

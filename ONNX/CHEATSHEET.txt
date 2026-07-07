@@ -1,0 +1,105 @@
+DOCKER AGENT FOR ONNX - QUICK REFERENCE
+========================================
+
+NO API KEY NEEDED - Uses Ollama (local models)
+
+SETUP (One-time)
+================
+1. Start Ollama (comes with pgpt):
+   cd C:\pgpt
+   up.bat
+
+2. Pull a model:
+   docker exec pgpt-ollama ollama pull mistral
+
+3. Verify Ollama running:
+   http://localhost:11434/api/tags
+
+RUN AGENT
+=========
+
+Option 1 - Interactive Menu:
+  cd C:\AS\ONNX
+  .\run-agent.bat
+
+Option 2 - Direct run (ONNX only):
+  cd C:\AS\ONNX
+  docker agent run agent.yaml
+
+Option 3 - Full stack (Sentinel + Skill + ONNX):
+  cd C:\AS
+  docker agent run agent-full-stack.yaml
+
+Option 4 - API Server (http://localhost:8000):
+  docker agent serve agent.yaml --port 8000
+
+QUICK PROMPTS
+=============
+
+List project structure:
+  "Show me what's in C:\AS\ONNX"
+
+Build and test C# project:
+  "Build the C# project with dotnet build and tell me if it works"
+
+Check available models:
+  "List all ONNX models in ./models/"
+
+Run inference:
+  "Get metadata for models/model.onnx"
+
+Benchmark:
+  "Benchmark with 100 iterations"
+
+Fine-tune:
+  "Run fine-tuning on the Python pipeline"
+
+Multi-step workflow:
+  "1. List models 2. Benchmark first one 3. Show results"
+
+AVAILABLE MODELS (No API Key!)
+==============================
+mistral           - Fast, default (recommended)
+hermes2           - Creative, brainstorming
+neural-chat       - Conversation optimized
+llama2            - General purpose
+dolphin-mixtral   - Advanced reasoning (slower)
+
+Pull new model:
+  docker exec pgpt-ollama ollama pull hermes2
+
+Change model in agent.yaml:
+  root:
+    model: ollama/hermes2
+
+TROUBLESHOOT
+============
+
+Ollama not found?
+  → Start pgpt: cd C:\pgpt && up.bat
+
+Model not found?
+  → Pull it: docker exec pgpt-ollama ollama pull mistral
+
+Agent slow?
+  → Try smaller model: ollama pull neural-chat
+
+dotnet not found?
+  → Make sure in C:\AS\ONNX and run: dotnet build
+
+FILES CREATED
+=============
+C:\AS\ONNX\agent.yaml              - Multi-specialist agent
+C:\AS\ONNX\agent-simple.yaml       - Single-agent config
+C:\AS\ONNX\run-agent.bat           - Interactive menu
+C:\AS\agent-full-stack.yaml        - Orchestrates all stacks
+C:\AS\DOCKER_AGENT_QUICKSTART.md   - Full guide
+
+NEXT STEPS
+==========
+1. Add real ONNX models to C:\AS\ONNX\models\
+2. Ask agent complex questions
+3. Integrate with VS Code (optional)
+4. Share agent configs with team
+
+That's it! 🚀
