@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#070b12">
+  <meta name="description" content="Access Stack editorial preview: systems, labs, AI, development, security and build logs.">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/blog-preview.css">
+  <title>Access Stack — Field Notes, Systems & Build Logs</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="mark">A/S</span><span>ACCESS STACK</span></a>
+    <nav aria-label="Primary">
+      <a href="#latest">Latest</a>
+      <a href="#systems">Systems</a>
+      <a href="#lab">Lab</a>
+      <a href="#projects">Projects</a>
+      <a href="#notes">Notes</a>
+    </nav>
+    <a class="status" href="#projects">LAB / ACTIVE</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="kicker">FIELD NOTES FROM THE ACCESS STACK</p>
+        <h1>BUILD SYSTEMS.<br>BREAK THEM.<br><span>FIND OUT WHY.</span></h1>
+        <p class="lede">Real experiments across Linux, Windows, local AI, virtualization, networking and security. Commands, failures, fixes and the reasoning behind them.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#latest">Read the latest</a>
+          <a class="btn" href="#lab">Enter the lab</a>
+        </div>
+      </div>
+      <aside class="live-panel">
+        <div class="panel-head"><span>LIVE BUILD LOG</span><span class="dot"></span></div>
+        <p class="mono">SESSION / 2026.09</p>
+        <h2>Ubuntu → Windows 11 25H2</h2>
+        <div class="signal"><span>Ventoy</span><strong>VERIFIED</strong></div>
+        <div class="signal"><span>UEFI</span><strong>ENABLED</strong></div>
+        <div class="signal"><span>NVIDIA 595</span><strong>REPAIRING</strong></div>
+        <div class="terminal">$ sha256sum Win11_25H2_English_x64_v2.iso<br><b>768984706b90… MATCH</b></div>
+      </aside>
+    </section>
+
+    <section class="ticker" aria-label="focus areas">
+      <span>WINDOWS</span><span>LINUX</span><span>LOCAL AI</span><span>SECURITY</span><span>VIRTUALIZATION</span><span>NETWORKS</span>
+    </section>
+
+    <section class="section" id="latest">
+      <div class="section-head">
+        <div><p class="kicker">LATEST</p><h2>Work in public. Keep the useful parts.</h2></div>
+        <p>Long-form technical posts beside shorter lab notes, because not every discovery needs to become a small novel.</p>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card large">
+          <div class="visual windows"><span>01</span><div class="grid-lines"></div></div>
+          <div class="copy">
+            <p class="meta">SYSTEMS / WINDOWS + LINUX / 12 MIN</p>
+            <h3>Rebuilding Windows 11 25H2 From Linux</h3>
+            <p>Ventoy, checksum verification, UEFI, Secure Boot and keeping the Linux installation very intentionally alive.</p>
+            <a href="#">Read build log →</a>
+          </div>
+        </article>
+
+        <article class="feature-card tall">
+          <div class="visual nvidia"><span>02</span></div>
+          <div class="copy">
+            <p class="meta">SYSTEMS / NVIDIA</p>
+            <h3>When Driver Branches Collide</h3>
+            <p>595 vs 615 package ownership, DKMS and why “just purge NVIDIA” is often terrible advice.</p>
+            <a href="#">Open investigation →</a>
+          </div>
+        </article>
+
+        <article class="feature-card compact">
+          <div class="copy">
+            <p class="meta">FIELD NOTE / WINDOWS</p>
+            <h3>25H2 known issues that actually matter</h3>
+            <p>USB audio, WSL shared folders, RDP and the Defender false-warning bug.</p>
+            <a href="#">4 min read →</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section split" id="systems">
+      <div class="diagram-card">
+        <p class="kicker">VERIFIED STATE</p>
+        <h2>Show the evidence.</h2>
+        <div class="evidence">
+          <div><span>OS</span><b>Ubuntu 26.04</b></div>
+          <div><span>KERNEL</span><b>7.0.0-31</b></div>
+          <div><span>GPU</span><b>RTX 4060</b></div>
+          <div><span>SECURE BOOT</span><b>ENABLED</b></div>
+          <div><span>VENTOY</span><b>1.1.17 / PASS</b></div>
+          <div><span>WIN11 ISO</span><b>SHA-256 / MATCH</b></div>
+        </div>
+      </div>
+      <div class="essay-card">
+        <p class="kicker">SYSTEMS</p>
+        <h2>The boring details are usually where the answer lives.</h2>
+        <p>Access Stack articles record versions, hardware, exact errors, commands and current status. Not because logs are glamorous, but because “it broke somehow” is an exceptionally poor debugging strategy.</p>
+        <a href="#">Browse systems articles →</a>
+      </div>
+    </section>
+
+    <section class="section lab" id="lab">
+      <div class="section-head">
+        <div><p class="kicker">ACCESS STACK LAB</p><h2>One machine. Several operating systems. Questionable restraint.</h2></div>
+      </div>
+      <div class="lab-row">
+        <article><span>01</span><h3>Windows 11</h3><p>Main client, WSL, development and recovery work.</p></article>
+        <article><span>02</span><h3>Windows Server 2025</h3><p>Active Directory, DNS, IIS, PowerShell and domain experiments.</p></article>
+        <article><span>03</span><h3>Ubuntu</h3><p>Host workstation, local development and system repair.</p></article>
+        <article><span>04</span><h3>Parrot + VMs</h3><p>Isolated testing, security tooling and cross-platform workflows.</p></article>
+      </div>
+    </section>
+
+    <section class="section projects" id="projects">
+      <div class="project-copy">
+        <p class="kicker">PROJECTS</p>
+        <h2>Building local AI software instead of only using it.</h2>
+        <p>OC2, 0LR, Access Stack experiments, local models, agent architecture, GUI/CLI/API work and the parts that fail before they become screenshots.</p>
+        <div class="chips"><span>LOCAL AI</span><span>AGENTS</span><span>CLI</span><span>GUI</span><span>APIs</span><span>CUDA</span></div>
+      </div>
+      <div class="project-terminal">
+        <div class="terminal-bar"><span></span><span></span><span></span></div>
+        <pre>access-stack/lab
+├── systems/
+├── ai-dev/
+├── security-network/
+├── build-logs/
+└── field-notes/
+
+status: evolving
+method: build → test → document</pre>
+      </div>
+    </section>
+
+    <section class="section notes" id="notes">
+      <div class="section-head"><div><p class="kicker">FIELD NOTES</p><h2>Smaller things worth remembering.</h2></div></div>
+      <div class="note-list">
+        <article><span>09.13</span><h3>UEFI is not a per-OS preference switch</h3><p>Why bouncing between CSM and UEFI makes valid bootloaders appear to vanish.</p></article>
+        <article><span>09.13</span><h3>Checksum the copy, not only the download</h3><p>Verifying a multi-gigabyte installer after it reaches removable media.</p></article>
+        <article><span>09.12</span><h3>Wayland says “None-1” when the real graphics stack has left the building</h3><p>A useful symptom from the ongoing NVIDIA repair.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div><strong>ACCESS STACK</strong><p>Systems, software, experiments and field notes.</p></div>
+    <div class="footer-links"><a href="https://github.com/Cody-Joel/access-stack">GitHub</a><a href="/">Main site</a></div>
+  </footer>
+</body>
+</html>
