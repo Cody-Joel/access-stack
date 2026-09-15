@@ -1,11 +1,11 @@
 {
   "name": "Access-Stack",
   "short_name": "Access-Stack",
-  "description": "AI evaluation and defensive research tooling.",
+  "description": "Independent software, AI research, defensive security, creative tools, and experimental systems.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#080b12",
-  "theme_color": "#080b12",
+  "background_color": "#181817",
+  "theme_color": "#181817",
   "icons": [
     {
       "src": "/icon.svg",
