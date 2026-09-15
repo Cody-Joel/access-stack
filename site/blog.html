@@ -36,14 +36,14 @@
     <div class="journal-head">
       <p class="eyebrow">JOURNAL / BLOG / FIELD NOTES</p>
       <h1>Build. Test. Document.</h1>
-      <p>The Access Stack studio blog: verified build logs, research notes, unfinished investigations, visual experiments, project updates and the thinking behind the work.</p>
+      <p>The Access Stack studio journal: verified build logs, research notes, active investigations, visual experiments, project updates and the reasoning behind the work.</p>
     </div>
 
-    <nav class="journal-index" aria-label="Entries">
+    <nav class="journal-index" aria-label="Journal entries">
       <a href="#deployment">Site deployment</a>
       <a href="#origins">Origins visual lab</a>
       <a href="#trust">Access Stack Trust</a>
-      <a href="#api-fabric">API Fabric</a>
+      <a href="#api-fabric">Relay + API Fabric</a>
       <a href="#windows">Windows preparation</a>
       <a href="#drivers">Driver investigation</a>
       <a href="#studio">Studio direction</a>
@@ -52,17 +52,17 @@
     <article class="journal-entry" id="deployment">
       <p class="eyebrow">WEB / BUILD LOG</p>
       <h2>Rebuilding the public site around GitHub and Cloudflare</h2>
-      <p>The public website source now lives in the access-stack GitHub repository under a dedicated static site directory. The current deployment configuration points Cloudflare Workers static assets at that directory, which keeps the public surface simple and inspectable.</p>
-      <p>The latest deployment repair added an explicit compatibility date and static-assets configuration after the first connected build failed. The build then succeeded. The custom domain was later corrected by removing an older Worker route that had been intercepting the public hostname.</p>
-      <p>The site itself now separates the main portfolio, journal and visual archive instead of pretending one very long page is a navigation system.</p>
+      <p>The public website source lives in the access-stack GitHub repository under a dedicated static site directory. Cloudflare Workers serves those static assets, keeping the public surface simple, inspectable and easy to deploy.</p>
+      <p>An early connected build failed until the Worker configuration was corrected with an explicit compatibility date and static-assets directory. A separate legacy Worker route was later found intercepting the public hostname; removing that route restored the intended deployment path.</p>
+      <p>The result is a clearer public structure with distinct portfolio, journal and visual-archive surfaces rather than one page carrying every responsibility at once.</p>
     </article>
 
     <article class="journal-entry" id="origins">
       <p class="eyebrow">VISUAL LAB / CONCEPT SERIES</p>
       <h2>Access-Stack Origins: turning project themes into a visual world</h2>
       <p>Origins is a cinematic science-fiction design exercise built around recurring Access Stack themes: creation, security, autonomy, systems engineering and the tension between useful technology and control.</p>
-      <p>The current Season One and Awakening studies use a blue-and-white protagonist suit, a red-and-black rival, an Arctic research facility, the fictional Quantum Cipher Security Codes, and a ten-episode structure. These are concept visuals and narrative previsualization, not claims about finished products or real hardware.</p>
-      <p>The visual archive gives this work its own place alongside aerospace concepts, product-interface studies and research graphics.</p>
+      <p>The Season One and Awakening studies use a blue-and-white protagonist suit, a red-and-black rival, an Arctic research facility, the fictional Quantum Cipher Security Codes and a ten-episode structure. These are narrative design studies and previsualization, not claims about finished products or real hardware.</p>
+      <p>The visual archive gives this work a dedicated home alongside aerospace concepts, product-interface studies and research graphics.</p>
       <a class="text-link" href="/gallery.html">Open the visual archive →</a>
     </article>
 
@@ -70,47 +70,47 @@
       <p class="eyebrow">PRODUCT CONCEPT / IDENTITY</p>
       <h2>Access Stack Trust: authenticate once, prove trust cryptographically</h2>
       <p>The Trust concept asks a practical question: how much repeated password friction can be replaced by device-bound cryptographic proof without weakening security?</p>
-      <p>The working architecture uses standards that already exist: passkeys and WebAuthn, FIDO2, OAuth and OpenID Connect, SSH keys or certificates, TPM-backed keys, Windows Hello and Linux PAM integration. A trusted device signs challenges while the private key remains inside secure hardware.</p>
-      <p>This is a concept and architecture direction, not a finished authentication service. The useful part is that it starts from real standards instead of inventing a magical universal login protocol and hoping cryptography politely rearranges itself.</p>
+      <p>The working architecture is grounded in standards that already exist: passkeys and WebAuthn, FIDO2, OAuth and OpenID Connect, SSH keys or certificates, TPM-backed keys, Windows Hello and Linux PAM integration. A trusted device signs challenges while the private key remains inside secure hardware.</p>
+      <p>This remains an architecture direction rather than a finished authentication service. The useful constraint is that the design starts from established standards instead of inventing a proprietary security mechanism merely for novelty.</p>
     </article>
 
     <article class="journal-entry" id="api-fabric">
       <p class="eyebrow">PRODUCT CONCEPT / PLATFORM</p>
-      <h2>From separate tools to an Access API Fabric</h2>
-      <p>Another design direction is an API hub that gives multiple small services a shared operating layer: authentication, rate limits, usage metering, audit logs, routing, retries, webhooks, secret handling and bring-your-own-key support.</p>
-      <p>Candidate services include a model gateway, repository intelligence, document generation, memory, browser-tab intelligence and notification APIs. The value would come from making each service easier to inspect and operate rather than building a giant platform simply because giant platforms look impressive in diagrams.</p>
-      <p>The concept remains in planning. Individual services need to earn their place through working prototypes and real use cases.</p>
+      <h2>Relay and the Access API Fabric</h2>
+      <p>Relay is the desktop-facing control-plane direction: one inspectable workspace for routing local and cloud models, agents, telemetry and orchestration without forcing the user into a single provider.</p>
+      <p>The broader API Fabric concept would give multiple small services a shared operating layer for authentication, rate limits, usage metering, audit logs, routing, retries, webhooks, secret handling and bring-your-own-key support.</p>
+      <p>Candidate services include a model gateway, repository intelligence, document generation, memory, browser-tab intelligence and notification APIs. Each service has to justify itself through a working use case before it earns a permanent place in the platform.</p>
     </article>
 
     <article class="journal-entry" id="windows">
       <p class="eyebrow">SYSTEMS / BUILD LOG</p>
       <h2>Windows installer prepared; installation work remains evidence-driven</h2>
-      <p>The recent preparation record shows a bootable installer workflow prepared from Ubuntu, with the Windows ISO copied to the USB and verification information recorded before unmounting it safely.</p>
-      <p>The goal is to preserve Ubuntu and existing files while restoring a usable Windows environment for development. Disk layout, EFI state and the destination partition are checked before destructive installation steps rather than relying on stale assumptions.</p>
-      <p>This journal deliberately separates preparation from success: having an installer is not the same as proving a clean boot, working drivers and intact data.</p>
+      <p>The preparation record includes a bootable installer workflow from Ubuntu, verification of the copied Windows image and careful handling of the target disk layout before installation.</p>
+      <p>The goal is to preserve Ubuntu and existing files while restoring a usable Windows environment for development and project recovery. Disk layout, EFI state and destination partitions are checked before destructive steps rather than relying on stale assumptions.</p>
+      <p>The journal deliberately distinguishes preparation from verified success: an installer is useful, but the milestone is a working installation with intact data, working drivers and recoverable project files.</p>
     </article>
 
     <article class="journal-entry" id="drivers">
       <p class="eyebrow">SYSTEMS / INVESTIGATION</p>
       <h2>NVIDIA dependencies: keep the repair evidence</h2>
-      <p>The Ubuntu graphics repair has involved package-version checks, DKMS state, Secure Boot awareness and dependency cleanup. The important rule is to distinguish a proposed command, a simulated package change and a verified result.</p>
-      <p>That matters especially around graphics drivers, where one enthusiastic package removal can transform a tidy repair into an educational afternoon nobody requested.</p>
-      <p>Final repair notes belong here only after the installed version, module state and working GPU output agree.</p>
+      <p>The Ubuntu graphics repair has involved package-version checks, DKMS state, Secure Boot awareness and dependency cleanup. The operating rule is to distinguish a proposed command, a simulated package change and a verified result.</p>
+      <p>That matters around graphics drivers because package changes can affect the desktop, CUDA tooling and development workflows at the same time.</p>
+      <p>Final repair notes belong in the public record only after the installed version, kernel-module state and working GPU output agree.</p>
     </article>
 
     <article class="journal-entry" id="studio">
       <p class="eyebrow">STUDIO / PLANNING</p>
       <h2>Turning Access Stack into a focused independent studio</h2>
-      <p>Access Stack brings together software projects, systems experiments, research and visual design. The business direction is to make that work understandable enough that another person can evaluate what is actually being offered.</p>
-      <p>The practical starting point is scoped digital work such as small websites and software workflows, while independent products continue developing alongside service work. Pricing, customer demand and product-market fit still need validation rather than being declared into existence by a landing page.</p>
-      <p>Research projects and visual concepts remain part of the studio, with their status made explicit so finished tools, prototypes, experiments and ideas do not get blurred together.</p>
+      <p>Access Stack brings together software projects, systems experiments, research and visual design. The business direction is to make that work understandable enough that another person can evaluate what exists, what is being developed and what could become a commercial product.</p>
+      <p>The practical path is deliberately staged: recover and consolidate the strongest existing projects, select a flagship commercial product, validate demand, then expand infrastructure and services as the evidence supports it.</p>
+      <p>Research projects and visual concepts remain part of the studio, with status labels kept explicit so production software, prototypes, experiments and design studies do not blur into one another.</p>
     </article>
 
     <section class="support-section">
       <div>
         <p class="eyebrow">SUPPORT THE WORK</p>
-        <h2>Independent development has bills. A shocking flaw in the universe.</h2>
-        <p>Support goes toward development, hosting, research and the visual work documented here.</p>
+        <h2>Independent development grows through sustained time, tools and infrastructure.</h2>
+        <p>Support helps cover development, hosting, research infrastructure and visual work documented across the studio.</p>
       </div>
       <div class="support-actions">
         <a class="button primary" href="https://buymeacoffee.com/CodyJoel">Buy me a coffee</a>
