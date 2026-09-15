@@ -157,6 +157,7 @@
 .media-row strong { display: block; }
 .media-row span { color: var(--dim); font-size: .78rem; }
 .media-status { align-self: center; color: var(--accent) !important; font: 800 .66rem ui-monospace, monospace; letter-spacing: .08em; }
+.gallery-main .support-section { margin-top: 80px; }
 
 @media (max-width: 760px) {
   .gallery-main { padding-top: 56px; }
