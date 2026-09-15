@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#181817">
-  <meta name="description" content="Access Stack build logs, experiments, product ideas and studio planning.">
+  <meta name="description" content="The Access Stack Journal and blog: build logs, research notes, experiments, project updates, visual work and independent studio field notes.">
   <link rel="canonical" href="https://www.access-stack.com/blog.html">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
-  <title>Access Stack | Journal</title>
+  <title>Access Stack | Journal & Blog</title>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -28,9 +28,9 @@
 
   <main id="main" class="section">
     <div class="journal-head">
-      <p class="eyebrow">FIELD NOTES / SEPTEMBER 2026</p>
+      <p class="eyebrow">JOURNAL / BLOG / FIELD NOTES</p>
       <h1>Build. Test. Document.</h1>
-      <p>Verified milestones, unfinished investigations, visual experiments and product ideas from the Access Stack workbench.</p>
+      <p>The Access Stack studio blog: verified build logs, research notes, unfinished investigations, visual experiments, project updates and the thinking behind the work.</p>
     </div>
 
     <nav class="journal-index" aria-label="Entries">
@@ -47,7 +47,7 @@
       <p class="eyebrow">WEB / BUILD LOG</p>
       <h2>Rebuilding the public site around GitHub and Cloudflare</h2>
       <p>The public website source now lives in the access-stack GitHub repository under a dedicated static site directory. The current deployment configuration points Cloudflare Workers static assets at that directory, which keeps the public surface simple and inspectable.</p>
-      <p>The latest deployment repair added an explicit compatibility date and static-assets configuration after the first connected build failed. The build then succeeded. The remaining visitor-facing check is making sure the custom domain is actually routed to the same Worker version being built from GitHub.</p>
+      <p>The latest deployment repair added an explicit compatibility date and static-assets configuration after the first connected build failed. The build then succeeded. The custom domain was later corrected by removing an older Worker route that had been intercepting the public hostname.</p>
       <p>The site itself now separates the main portfolio, journal and visual archive instead of pretending one very long page is a navigation system.</p>
     </article>
 
@@ -56,7 +56,7 @@
       <h2>Access-Stack Origins: turning project themes into a visual world</h2>
       <p>Origins is a cinematic science-fiction design exercise built around recurring Access Stack themes: creation, security, autonomy, systems engineering and the tension between useful technology and control.</p>
       <p>The current Season One and Awakening studies use a blue-and-white protagonist suit, a red-and-black rival, an Arctic research facility, the fictional Quantum Cipher Security Codes, and a ten-episode structure. These are concept visuals and narrative previsualization, not claims about finished products or real hardware.</p>
-      <p>The new visual archive gives this work its own place alongside aerospace concepts, product-interface studies and research graphics.</p>
+      <p>The visual archive gives this work its own place alongside aerospace concepts, product-interface studies and research graphics.</p>
       <a class="text-link" href="/gallery.html">Open the visual archive →</a>
     </article>
 
