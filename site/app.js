@@ -1,25 +1,6 @@
 (() => {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  if (!reduceMotion && 'IntersectionObserver' in window) {
-    const targets = document.querySelectorAll(
-      '.project-card, .visual-band, .finding-layout, .repo-card, .lab-card, .support-section'
-    );
-
-    targets.forEach((el) => el.classList.add('reveal'));
-
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      }
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-    targets.forEach((el) => observer.observe(el));
-  }
-
   const links = [...document.querySelectorAll('.site-header nav a[href^="#"]')];
   const sections = links
     .map((link) => document.querySelector(link.getAttribute('href')))
@@ -35,7 +16,8 @@
 
       links.forEach((link) => {
         const active = link.getAttribute('href') === `#${visible.target.id}`;
-        link.setAttribute('aria-current', active ? 'true' : 'false');
+        if (active) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
       });
     }, { threshold: [0.2, 0.45, 0.7] });
 
