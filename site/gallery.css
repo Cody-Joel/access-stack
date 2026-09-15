@@ -51,12 +51,17 @@
 .gallery-card.featured { grid-column: 1 / -1; }
 
 .gallery-art {
+  display: block;
   position: relative;
   min-height: 360px;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
   background: #171615;
+  transition: filter .18s ease, transform .18s ease;
 }
+
+.gallery-art:hover { filter: brightness(1.12); }
+.gallery-art:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
 
 .gallery-card.featured .gallery-art { min-height: 520px; }
 
@@ -132,6 +137,7 @@
 .gallery-copy h2 { margin: 6px 0 10px; font-size: 1.65rem; letter-spacing: -.035em; }
 .gallery-copy p { margin: 0; color: var(--muted); }
 .gallery-meta { margin-top: 16px; color: var(--dim); font: 730 .69rem ui-monospace, monospace; letter-spacing: .05em; }
+.gallery-copy .text-link { margin-top: 18px; }
 
 .gallery-section-title {
   margin: 76px 0 24px;
